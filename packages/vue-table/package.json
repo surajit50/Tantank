@@ -43,6 +43,7 @@
   ],
   "scripts": {
     "clean": "rimraf ./build",
+    "test:eslint": "eslint --ext .ts,.tsx ./src",
     "test:types": "tsc --noEmit",
     "build": "pnpm build:rollup && pnpm build:types",
     "build:rollup": "rollup --config rollup.config.mjs",

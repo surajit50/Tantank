@@ -49,6 +49,7 @@
   ],
   "scripts": {
     "clean": "rimraf ./build",
+    "test:eslint": "eslint --ext .ts,.tsx ./src",
     "test:lib": "vitest",
     "test:lib:dev": "pnpm test:lib --watch",
     "test:types": "tsc --noEmit",

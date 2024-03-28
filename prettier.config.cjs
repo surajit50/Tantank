@@ -1,13 +1,12 @@
-module.exports = {
-  printWidth: 80,
-  tabWidth: 2,
-  useTabs: false,
+// @ts-check
+
+/** @type {import('prettier').Config} */
+const config = {
   semi: false,
   singleQuote: true,
-  trailingComma: 'es5',
-  bracketSpacing: true,
-  arrowParens: 'avoid',
-  endOfLine: 'auto',
+  trailingComma: 'all',
   plugins: ['prettier-plugin-svelte'],
   overrides: [{ files: '*.svelte', options: { parser: 'svelte' } }],
 }
+
+export default config
