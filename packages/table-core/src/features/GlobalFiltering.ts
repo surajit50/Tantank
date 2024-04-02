@@ -1,14 +1,15 @@
-import { FilterFn, FilterFnOption } from '..'
-import { BuiltInFilterFn, filterFns } from '../filterFns'
-import {
+import { filterFns } from '../filterFns'
+import { isFunction, makeStateUpdater } from '../utils'
+import type { FilterFn, FilterFnOption } from '..'
+import type { BuiltInFilterFn } from '../filterFns'
+import type {
   Column,
   OnChangeFn,
-  Table,
-  Updater,
   RowData,
+  Table,
   TableFeature,
+  Updater,
 } from '../types'
-import { isFunction, makeStateUpdater } from '../utils'
 
 export interface GlobalFilterTableState {
   globalFilter: any
@@ -102,12 +103,12 @@ export const GlobalFiltering: TableFeature = {
   },
 
   getDefaultOptions: <TData extends RowData>(
-    table: Table<TData>
+    table: Table<TData>,
   ): GlobalFilterOptions<TData> => {
     return {
       onGlobalFilterChange: makeStateUpdater('globalFilter', table),
       globalFilterFn: 'auto',
-      getColumnCanGlobalFilter: column => {
+      getColumnCanGlobalFilter: (column) => {
         const value = table
           .getCoreRowModel()
           .flatRows[0]?._getAllCellsByColumnId()
@@ -120,7 +121,7 @@ export const GlobalFiltering: TableFeature = {
 
   createColumn: <TData extends RowData>(
     column: Column<TData, unknown>,
-    table: Table<TData>
+    table: Table<TData>,
   ): void => {
     column.getCanGlobalFilter = () => {
       return (
@@ -149,13 +150,13 @@ export const GlobalFiltering: TableFeature = {
             filterFns[globalFilterFn as BuiltInFilterFn]
     }
 
-    table.setGlobalFilter = updater => {
+    table.setGlobalFilter = (updater) => {
       table.options.onGlobalFilterChange?.(updater)
     }
 
-    table.resetGlobalFilter = defaultState => {
+    table.resetGlobalFilter = (defaultState) => {
       table.setGlobalFilter(
-        defaultState ? undefined : table.initialState.globalFilter
+        defaultState ? undefined : table.initialState.globalFilter,
       )
     }
   },

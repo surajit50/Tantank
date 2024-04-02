@@ -1,6 +1,8 @@
-import { RowModel } from '..'
-import { BuiltInAggregationFn, aggregationFns } from '../aggregationFns'
-import {
+import { aggregationFns } from '../aggregationFns'
+import { isFunction, makeStateUpdater } from '../utils'
+import type { RowModel } from '..'
+import type { BuiltInAggregationFn } from '../aggregationFns'
+import type {
   AggregationFns,
   Cell,
   Column,
@@ -12,9 +14,8 @@ import {
   TableFeature,
   Updater,
 } from '../types'
-import { isFunction, makeStateUpdater } from '../utils'
 
-export type GroupingState = string[]
+export type GroupingState = Array<string>
 
 export interface GroupingTableState {
   grouping: GroupingState
@@ -22,8 +23,8 @@ export interface GroupingTableState {
 
 export type AggregationFn<TData extends RowData> = (
   columnId: string,
-  leafRows: Row<TData>[],
-  childRows: Row<TData>[]
+  leafRows: Array<Row<TData>>,
+  childRows: Array<Row<TData>>,
 ) => any
 
 export type CustomAggregationFns = Record<string, AggregationFn<any>>
@@ -245,7 +246,8 @@ export const ColumnGrouping: TableFeature = {
     unknown
   > => {
     return {
-      aggregatedCell: props => (props.getValue() as any)?.toString?.() ?? null,
+      aggregatedCell: (props) =>
+        (props.getValue() as any)?.toString?.() ?? null,
       aggregationFn: 'auto',
     }
   },
@@ -258,7 +260,7 @@ export const ColumnGrouping: TableFeature = {
   },
 
   getDefaultOptions: <TData extends RowData>(
-    table: Table<TData>
+    table: Table<TData>,
   ): GroupingOptions => {
     return {
       onGroupingChange: makeStateUpdater('grouping', table),
@@ -268,16 +270,16 @@ export const ColumnGrouping: TableFeature = {
 
   createColumn: <TData extends RowData, TValue>(
     column: Column<TData, TValue>,
-    table: Table<TData>
+    table: Table<TData>,
   ): void => {
     column.toggleGrouping = () => {
-      table.setGrouping(old => {
+      table.setGrouping((old) => {
         // Find any existing grouping for this column
-        if (old?.includes(column.id)) {
-          return old.filter(d => d !== column.id)
+        if (old.includes(column.id)) {
+          return old.filter((d) => d !== column.id)
         }
 
-        return [...(old ?? []), column.id]
+        return [...old, column.id]
       })
     }
 
@@ -290,10 +292,10 @@ export const ColumnGrouping: TableFeature = {
     }
 
     column.getIsGrouped = () => {
-      return table.getState().grouping?.includes(column.id)
+      return table.getState().grouping.includes(column.id)
     }
 
-    column.getGroupedIndex = () => table.getState().grouping?.indexOf(column.id)
+    column.getGroupedIndex = () => table.getState().grouping.indexOf(column.id)
 
     column.getToggleGroupingHandler = () => {
       const canGroup = column.getCanGroup()
@@ -317,10 +319,6 @@ export const ColumnGrouping: TableFeature = {
       }
     }
     column.getAggregationFn = () => {
-      if (!column) {
-        throw new Error()
-      }
-
       return isFunction(column.columnDef.aggregationFn)
         ? column.columnDef.aggregationFn
         : column.columnDef.aggregationFn === 'auto'
@@ -335,10 +333,10 @@ export const ColumnGrouping: TableFeature = {
   },
 
   createTable: <TData extends RowData>(table: Table<TData>): void => {
-    table.setGrouping = updater => table.options.onGroupingChange?.(updater)
+    table.setGrouping = (updater) => table.options.onGroupingChange?.(updater)
 
-    table.resetGrouping = defaultState => {
-      table.setGrouping(defaultState ? [] : table.initialState?.grouping ?? [])
+    table.resetGrouping = (defaultState) => {
+      table.setGrouping(defaultState ? [] : table.initialState.grouping)
     }
 
     table.getPreGroupedRowModel = () => table.getFilteredRowModel()
@@ -357,10 +355,10 @@ export const ColumnGrouping: TableFeature = {
 
   createRow: <TData extends RowData>(
     row: Row<TData>,
-    table: Table<TData>
+    table: Table<TData>,
   ): void => {
     row.getIsGrouped = () => !!row.groupingColumnId
-    row.getGroupingValue = columnId => {
+    row.getGroupingValue = (columnId) => {
       if (row._groupingValuesCache.hasOwnProperty(columnId)) {
         return row._groupingValuesCache[columnId]
       }
@@ -372,7 +370,7 @@ export const ColumnGrouping: TableFeature = {
       }
 
       row._groupingValuesCache[columnId] = column.columnDef.getGroupingValue(
-        row.original
+        row.original,
       )
 
       return row._groupingValuesCache[columnId]
@@ -384,7 +382,7 @@ export const ColumnGrouping: TableFeature = {
     cell: Cell<TData, TValue>,
     column: Column<TData, TValue>,
     row: Row<TData>,
-    table: Table<TData>
+    table: Table<TData>,
   ): void => {
     const getRenderValue = () =>
       cell.getValue() ?? table.options.renderFallbackValue
@@ -393,21 +391,21 @@ export const ColumnGrouping: TableFeature = {
       column.getIsGrouped() && column.id === row.groupingColumnId
     cell.getIsPlaceholder = () => !cell.getIsGrouped() && column.getIsGrouped()
     cell.getIsAggregated = () =>
-      !cell.getIsGrouped() && !cell.getIsPlaceholder() && !!row.subRows?.length
+      !cell.getIsGrouped() && !cell.getIsPlaceholder() && !!row.subRows.length
   },
 }
 
 export function orderColumns<TData extends RowData>(
-  leafColumns: Column<TData, unknown>[],
-  grouping: string[],
-  groupedColumnMode?: GroupingColumnMode
+  leafColumns: Array<Column<TData, unknown>>,
+  grouping: Array<string>,
+  groupedColumnMode?: GroupingColumnMode,
 ) {
-  if (!grouping?.length || !groupedColumnMode) {
+  if (!grouping.length || !groupedColumnMode) {
     return leafColumns
   }
 
   const nonGroupingColumns = leafColumns.filter(
-    col => !grouping.includes(col.id)
+    (col) => !grouping.includes(col.id),
   )
 
   if (groupedColumnMode === 'remove') {
@@ -415,7 +413,7 @@ export function orderColumns<TData extends RowData>(
   }
 
   const groupingColumns = grouping
-    .map(g => leafColumns.find(col => col.id === g)!)
+    .map((g) => leafColumns.find((col) => col.id === g)!)
     .filter(Boolean)
 
   return [...groupingColumns, ...nonGroupingColumns]

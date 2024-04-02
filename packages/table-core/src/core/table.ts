@@ -1,28 +1,4 @@
-import { functionalUpdate, getMemoOptions, memo, RequiredKeys } from '../utils'
-
-import {
-  Updater,
-  TableOptionsResolved,
-  TableState,
-  Table,
-  InitialTableState,
-  Row,
-  Column,
-  RowModel,
-  ColumnDef,
-  TableOptions,
-  RowData,
-  TableMeta,
-  ColumnDefResolved,
-  GroupColumnDef,
-  TableFeature,
-} from '../types'
-
-//
-import { createColumn } from './column'
-import { Headers } from './headers'
-//
-
+import { functionalUpdate, getMemoOptions, memo } from '../utils'
 import { ColumnFaceting } from '../features/ColumnFaceting'
 import { ColumnFiltering } from '../features/ColumnFiltering'
 import { ColumnGrouping } from '../features/ColumnGrouping'
@@ -37,6 +13,26 @@ import { RowPagination } from '../features/RowPagination'
 import { RowPinning } from '../features/RowPinning'
 import { RowSelection } from '../features/RowSelection'
 import { RowSorting } from '../features/RowSorting'
+import { Headers } from './headers'
+import { createColumn } from './column'
+import type {
+  Column,
+  ColumnDef,
+  ColumnDefResolved,
+  GroupColumnDef,
+  InitialTableState,
+  Row,
+  RowData,
+  RowModel,
+  Table,
+  TableFeature,
+  TableMeta,
+  TableOptions,
+  TableOptionsResolved,
+  TableState,
+  Updater,
+} from '../types'
+import type { RequiredKeys } from '../utils'
 
 const builtInFeatures = [
   Headers,
@@ -66,7 +62,7 @@ export interface CoreOptions<TData extends RowData> {
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#_features)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/tables)
    */
-  _features?: TableFeature[]
+  _features?: Array<TableFeature>
   /**
    * Set this option to override any of the `autoReset...` feature options.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#autoresetall)
@@ -78,13 +74,13 @@ export interface CoreOptions<TData extends RowData> {
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#columns)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/tables)
    */
-  columns: ColumnDef<TData, any>[]
+  columns: Array<ColumnDef<TData, any>>
   /**
    * The data for the table to display. This array should match the type you provided to `table.setRowType<...>`. Columns can access this data via string/index or a functional accessor. When the `data` option changes reference, the table will reprocess the data.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#data)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/tables)
    */
-  data: TData[]
+  data: Array<TData>
   /**
    * Set this option to `true` to output all debugging information to the console.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#debugall)
@@ -146,7 +142,7 @@ export interface CoreOptions<TData extends RowData> {
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#getsubrows)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/tables)
    */
-  getSubRows?: (originalRow: TData, index: number) => undefined | TData[]
+  getSubRows?: (originalRow: TData, index: number) => undefined | Array<TData>
   /**
    * Use this option to optionally pass initial state to the table. This state will be used when resetting various table states either automatically by the table (eg. `options.autoResetPageIndex`) or via functions like `table.resetRowSelection()`. Most reset function allow you optionally pass a flag to reset to a blank/default state instead of the initial state.
    *
@@ -163,7 +159,7 @@ export interface CoreOptions<TData extends RowData> {
    */
   mergeOptions?: (
     defaultOptions: TableOptions<TData>,
-    options: Partial<TableOptions<TData>>
+    options: Partial<TableOptions<TData>>,
   ) => TableOptions<TData>
   /**
    * You can pass any object to `options.meta` and access it anywhere the `table` is available via `table.options.meta`.
@@ -193,9 +189,9 @@ export interface CoreOptions<TData extends RowData> {
 }
 
 export interface CoreInstance<TData extends RowData> {
-  _features: readonly TableFeature[]
+  _features: ReadonlyArray<TableFeature>
   _getAllFlatColumnsById: () => Record<string, Column<TData, unknown>>
-  _getColumnDefs: () => ColumnDef<TData, unknown>[]
+  _getColumnDefs: () => Array<ColumnDef<TData, unknown>>
   _getCoreRowModel?: () => RowModel<TData>
   _getDefaultColumnDef: () => Partial<ColumnDef<TData, unknown>>
   _getRowId: (_: TData, index: number, parent?: Row<TData>) => string
@@ -205,19 +201,19 @@ export interface CoreInstance<TData extends RowData> {
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#getallcolumns)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/tables)
    */
-  getAllColumns: () => Column<TData, unknown>[]
+  getAllColumns: () => Array<Column<TData, unknown>>
   /**
    * Returns all columns in the table flattened to a single level.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#getallflatcolumns)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/tables)
    */
-  getAllFlatColumns: () => Column<TData, unknown>[]
+  getAllFlatColumns: () => Array<Column<TData, unknown>>
   /**
    * Returns all leaf-node columns in the table flattened to a single level. This does not include parent columns.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#getallleafcolumns)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/tables)
    */
-  getAllLeafColumns: () => Column<TData, unknown>[]
+  getAllLeafColumns: () => Array<Column<TData, unknown>>
   /**
    * Returns a single column by its ID.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/table#getcolumn)
@@ -281,7 +277,7 @@ export interface CoreInstance<TData extends RowData> {
 }
 
 export function createTable<TData extends RowData>(
-  options: TableOptionsResolved<TData>
+  options: TableOptionsResolved<TData>,
 ): Table<TData> {
   if (
     process.env.NODE_ENV !== 'production' &&
@@ -292,20 +288,20 @@ export function createTable<TData extends RowData>(
 
   const _features = [...builtInFeatures, ...(options._features ?? [])]
 
-  let table = { _features } as unknown as Table<TData>
+  const table = { _features } as unknown as Table<TData>
 
   const defaultOptions = table._features.reduce((obj, feature) => {
     return Object.assign(obj, feature.getDefaultOptions?.(table))
   }, {}) as TableOptionsResolved<TData>
 
-  const mergeOptions = (options: TableOptionsResolved<TData>) => {
+  const mergeOptions = (newOptions: TableOptionsResolved<TData>) => {
     if (table.options.mergeOptions) {
-      return table.options.mergeOptions(defaultOptions, options)
+      return table.options.mergeOptions(defaultOptions, newOptions)
     }
 
     return {
       ...defaultOptions,
-      ...options,
+      ...newOptions,
     }
   }
 
@@ -316,12 +312,12 @@ export function createTable<TData extends RowData>(
     ...(options.initialState ?? {}),
   } as TableState
 
-  table._features.forEach(feature => {
+  table._features.forEach((feature) => {
     initialState = (feature.getInitialState?.(initialState) ??
       initialState) as TableState
   })
 
-  const queued: (() => void)[] = []
+  const queued: Array<() => void> = []
   let queuedTimeout = false
 
   const coreInstance: CoreInstance<TData> = {
@@ -331,7 +327,7 @@ export function createTable<TData extends RowData>(
       ...options,
     },
     initialState,
-    _queue: cb => {
+    _queue: (cb) => {
       queued.push(cb)
 
       if (!queuedTimeout) {
@@ -346,17 +342,17 @@ export function createTable<TData extends RowData>(
             }
             queuedTimeout = false
           })
-          .catch(error =>
+          .catch((error) =>
             setTimeout(() => {
               throw error
-            })
+            }),
           )
       }
     },
     reset: () => {
       table.setState(table.initialState)
     },
-    setOptions: updater => {
+    setOptions: (updater) => {
       const newOptions = functionalUpdate(updater, table.options)
       table.options = mergeOptions(newOptions) as RequiredKeys<
         TableOptionsResolved<TData>,
@@ -369,7 +365,7 @@ export function createTable<TData extends RowData>(
     },
 
     setState: (updater: Updater<TableState>) => {
-      table.options.onStateChange?.(updater)
+      table.options.onStateChange(updater)
     },
 
     _getRowId: (row: TData, index: number, parent?: Row<TData>) =>
@@ -381,7 +377,7 @@ export function createTable<TData extends RowData>(
         table._getCoreRowModel = table.options.getCoreRowModel(table)
       }
 
-      return table._getCoreRowModel!()
+      return table._getCoreRowModel()
     },
 
     // The final calls start at the bottom of the model,
@@ -410,13 +406,13 @@ export function createTable<TData extends RowData>(
     },
     _getDefaultColumnDef: memo(
       () => [table.options.defaultColumn],
-      defaultColumn => {
+      (defaultColumn) => {
         defaultColumn = (defaultColumn ?? {}) as Partial<
           ColumnDef<TData, unknown>
         >
 
         return {
-          header: props => {
+          header: (props) => {
             const resolvedColumnDef = props.header.column
               .columnDef as ColumnDefResolved<TData>
 
@@ -431,27 +427,27 @@ export function createTable<TData extends RowData>(
             return null
           },
           // footer: props => props.header.column.id,
-          cell: props => props.renderValue<any>()?.toString?.() ?? null,
+          cell: (props) => props.renderValue<any>()?.toString?.() ?? null,
           ...table._features.reduce((obj, feature) => {
             return Object.assign(obj, feature.getDefaultColumnDef?.())
           }, {}),
           ...defaultColumn,
         } as Partial<ColumnDef<TData, unknown>>
       },
-      getMemoOptions(options, 'debugColumns', '_getDefaultColumnDef')
+      getMemoOptions(options, 'debugColumns', '_getDefaultColumnDef'),
     ),
 
     _getColumnDefs: () => table.options.columns,
 
     getAllColumns: memo(
       () => [table._getColumnDefs()],
-      columnDefs => {
+      (columnDefs) => {
         const recurseColumns = (
-          columnDefs: ColumnDef<TData, unknown>[],
+          columnDefs: Array<ColumnDef<TData, unknown>>,
           parent?: Column<TData, unknown>,
-          depth = 0
-        ): Column<TData, unknown>[] => {
-          return columnDefs.map(columnDef => {
+          depth = 0,
+        ): Array<Column<TData, unknown>> => {
+          return columnDefs.map((columnDef) => {
             const column = createColumn(table, columnDef, depth, parent)
 
             const groupingColumnDef = columnDef as GroupColumnDef<
@@ -469,43 +465,45 @@ export function createTable<TData extends RowData>(
 
         return recurseColumns(columnDefs)
       },
-      getMemoOptions(options, 'debugColumns', 'getAllColumns')
+      getMemoOptions(options, 'debugColumns', 'getAllColumns'),
     ),
 
     getAllFlatColumns: memo(
       () => [table.getAllColumns()],
-      allColumns => {
-        return allColumns.flatMap(column => {
+      (allColumns) => {
+        return allColumns.flatMap((column) => {
           return column.getFlatColumns()
         })
       },
-      getMemoOptions(options, 'debugColumns', 'getAllFlatColumns')
+      getMemoOptions(options, 'debugColumns', 'getAllFlatColumns'),
     ),
 
     _getAllFlatColumnsById: memo(
       () => [table.getAllFlatColumns()],
-      flatColumns => {
+      (flatColumns) => {
         return flatColumns.reduce(
           (acc, column) => {
             acc[column.id] = column
             return acc
           },
-          {} as Record<string, Column<TData, unknown>>
+          {} as Record<string, Column<TData, unknown>>,
         )
       },
-      getMemoOptions(options, 'debugColumns', 'getAllFlatColumnsById')
+      getMemoOptions(options, 'debugColumns', 'getAllFlatColumnsById'),
     ),
 
     getAllLeafColumns: memo(
       () => [table.getAllColumns(), table._getOrderColumnsFn()],
       (allColumns, orderColumns) => {
-        let leafColumns = allColumns.flatMap(column => column.getLeafColumns())
+        const leafColumns = allColumns.flatMap((column) =>
+          column.getLeafColumns(),
+        )
         return orderColumns(leafColumns)
       },
-      getMemoOptions(options, 'debugColumns', 'getAllLeafColumns')
+      getMemoOptions(options, 'debugColumns', 'getAllLeafColumns'),
     ),
 
-    getColumn: columnId => {
+    getColumn: (columnId) => {
       const column = table._getAllFlatColumnsById()[columnId]
 
       if (process.env.NODE_ENV !== 'production' && !column) {
@@ -518,9 +516,8 @@ export function createTable<TData extends RowData>(
 
   Object.assign(table, coreInstance)
 
-  for (let index = 0; index < table._features.length; index++) {
-    const feature = table._features[index]
-    feature?.createTable?.(table)
+  for (const feature of table._features) {
+    feature.createTable?.(table)
   }
 
   return table

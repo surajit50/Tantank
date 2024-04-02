@@ -59,7 +59,7 @@ const fuzzySort: SortingFn<any> = (rowA, rowB, columnId) => {
   if (rowA.columnFiltersMeta[columnId]) {
     dir = compareItems(
       rowA.columnFiltersMeta[columnId]?.itemRank!,
-      rowB.columnFiltersMeta[columnId]?.itemRank!
+      rowB.columnFiltersMeta[columnId]?.itemRank!,
     )
   }
 
@@ -71,7 +71,7 @@ function App() {
   const rerender = React.useReducer(() => ({}), {})[1]
 
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   )
   const [globalFilter, setGlobalFilter] = React.useState('')
 
@@ -79,26 +79,26 @@ function App() {
     () => [
       {
         header: 'Name',
-        footer: props => props.column.id,
+        footer: (props) => props.column.id,
         columns: [
           {
             accessorKey: 'firstName',
-            cell: info => info.getValue(),
-            footer: props => props.column.id,
+            cell: (info) => info.getValue(),
+            footer: (props) => props.column.id,
           },
           {
-            accessorFn: row => row.lastName,
+            accessorFn: (row) => row.lastName,
             id: 'lastName',
-            cell: info => info.getValue(),
+            cell: (info) => info.getValue(),
             header: () => <span>Last Name</span>,
-            footer: props => props.column.id,
+            footer: (props) => props.column.id,
           },
           {
-            accessorFn: row => `${row.firstName} ${row.lastName}`,
+            accessorFn: (row) => `${row.firstName} ${row.lastName}`,
             id: 'fullName',
             header: 'Full Name',
-            cell: info => info.getValue(),
-            footer: props => props.column.id,
+            cell: (info) => info.getValue(),
+            footer: (props) => props.column.id,
             filterFn: 'fuzzy',
             sortingFn: fuzzySort,
           },
@@ -106,12 +106,12 @@ function App() {
       },
       {
         header: 'Info',
-        footer: props => props.column.id,
+        footer: (props) => props.column.id,
         columns: [
           {
             accessorKey: 'age',
             header: () => 'Age',
-            footer: props => props.column.id,
+            footer: (props) => props.column.id,
           },
           {
             header: 'More Info',
@@ -119,28 +119,28 @@ function App() {
               {
                 accessorKey: 'visits',
                 header: () => <span>Visits</span>,
-                footer: props => props.column.id,
+                footer: (props) => props.column.id,
               },
               {
                 accessorKey: 'status',
                 header: 'Status',
-                footer: props => props.column.id,
+                footer: (props) => props.column.id,
               },
               {
                 accessorKey: 'progress',
                 header: 'Profile Progress',
-                footer: props => props.column.id,
+                footer: (props) => props.column.id,
               },
             ],
           },
         ],
       },
     ],
-    []
+    [],
   )
 
   const [data, setData] = React.useState<Person[]>(() => makeData(50000))
-  const refreshData = () => setData(_old => makeData(50000))
+  const refreshData = () => setData((_old) => makeData(50000))
 
   const table = useReactTable({
     data,
@@ -180,7 +180,7 @@ function App() {
       <div>
         <DebouncedInput
           value={globalFilter ?? ''}
-          onChange={value => setGlobalFilter(String(value))}
+          onChange={(value) => setGlobalFilter(String(value))}
           className="p-2 font-lg shadow border border-block"
           placeholder="Search all columns..."
         />
@@ -188,9 +188,9 @@ function App() {
       <div className="h-2" />
       <table>
         <thead>
-          {table.getHeaderGroups().map(headerGroup => (
+          {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => {
+              {headerGroup.headers.map((header) => {
                 return (
                   <th key={header.id} colSpan={header.colSpan}>
                     {header.isPlaceholder ? null : (
@@ -205,7 +205,7 @@ function App() {
                         >
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                           {{
                             asc: ' 🔼',
@@ -226,15 +226,15 @@ function App() {
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map(row => {
+          {table.getRowModel().rows.map((row) => {
             return (
               <tr key={row.id}>
-                {row.getVisibleCells().map(cell => {
+                {row.getVisibleCells().map((cell) => {
                   return (
                     <td key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   )
@@ -286,7 +286,7 @@ function App() {
           <input
             type="number"
             defaultValue={table.getState().pagination.pageIndex + 1}
-            onChange={e => {
+            onChange={(e) => {
               const page = e.target.value ? Number(e.target.value) - 1 : 0
               table.setPageIndex(page)
             }}
@@ -295,11 +295,11 @@ function App() {
         </span>
         <select
           value={table.getState().pagination.pageSize}
-          onChange={e => {
+          onChange={(e) => {
             table.setPageSize(Number(e.target.value))
           }}
         >
-          {[10, 20, 30, 40, 50].map(pageSize => (
+          {[10, 20, 30, 40, 50].map((pageSize) => (
             <option key={pageSize} value={pageSize}>
               Show {pageSize}
             </option>
@@ -336,7 +336,7 @@ function Filter({
       typeof firstValue === 'number'
         ? []
         : Array.from(column.getFacetedUniqueValues().keys()).sort(),
-    [column.getFacetedUniqueValues()]
+    [column.getFacetedUniqueValues()],
   )
 
   return typeof firstValue === 'number' ? (
@@ -347,7 +347,7 @@ function Filter({
           min={Number(column.getFacetedMinMaxValues()?.[0] ?? '')}
           max={Number(column.getFacetedMinMaxValues()?.[1] ?? '')}
           value={(columnFilterValue as [number, number])?.[0] ?? ''}
-          onChange={value =>
+          onChange={(value) =>
             column.setFilterValue((old: [number, number]) => [value, old?.[1]])
           }
           placeholder={`Min ${
@@ -362,7 +362,7 @@ function Filter({
           min={Number(column.getFacetedMinMaxValues()?.[0] ?? '')}
           max={Number(column.getFacetedMinMaxValues()?.[1] ?? '')}
           value={(columnFilterValue as [number, number])?.[1] ?? ''}
-          onChange={value =>
+          onChange={(value) =>
             column.setFilterValue((old: [number, number]) => [old?.[0], value])
           }
           placeholder={`Max ${
@@ -385,7 +385,7 @@ function Filter({
       <DebouncedInput
         type="text"
         value={(columnFilterValue ?? '') as string}
-        onChange={value => column.setFilterValue(value)}
+        onChange={(value) => column.setFilterValue(value)}
         placeholder={`Search... (${column.getFacetedUniqueValues().size})`}
         className="w-36 border shadow rounded"
         list={column.id + 'list'}
@@ -421,7 +421,11 @@ function DebouncedInput({
   }, [value])
 
   return (
-    <input {...props} value={value} onChange={e => setValue(e.target.value)} />
+    <input
+      {...props}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
   )
 }
 
@@ -431,5 +435,5 @@ if (!rootElement) throw new Error('Failed to find the root element')
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 )

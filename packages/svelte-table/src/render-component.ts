@@ -1,8 +1,8 @@
-import type { ComponentType, ComponentProps } from 'svelte'
 import {
   SvelteComponent,
   claim_component,
   create_component,
+  create_ssr_component,
   destroy_component,
   init,
   mount_component,
@@ -10,9 +10,9 @@ import {
   safe_not_equal,
   transition_in,
   transition_out,
-  create_ssr_component,
   validate_component,
 } from 'svelte/internal'
+import type { ComponentProps, ComponentType } from 'svelte'
 
 function create_fragment(ctx: any, Comp: any, props: any) {
   let c: any
@@ -49,7 +49,7 @@ function create_fragment(ctx: any, Comp: any, props: any) {
 
 function renderClient<T>(
   Comp: T,
-  props: T extends ComponentType<infer C> ? ComponentProps<C> : any
+  props: T extends ComponentType<infer C> ? ComponentProps<C> : any,
 ) {
   return class WrapperComp extends SvelteComponent {
     constructor(options: any) {
@@ -61,7 +61,7 @@ function renderClient<T>(
         (ctx: any) => create_fragment(ctx, Comp, props),
         safe_not_equal,
         {},
-        undefined
+        undefined,
       )
     }
   } as ComponentType
@@ -69,7 +69,7 @@ function renderClient<T>(
 
 function renderServer<T>(
   Comp: T,
-  props: T extends ComponentType<infer C> ? ComponentProps<C> : any
+  props: T extends ComponentType<infer C> ? ComponentProps<C> : any,
 ) {
   const WrapperComp = create_ssr_component(
     ($$result: any, $$props: any, $$bindings: any, slots: any) => {
@@ -77,9 +77,9 @@ function renderServer<T>(
         $$result,
         props,
         {},
-        {}
+        {},
       )}`
-    }
+    },
   )
 
   return WrapperComp as unknown as ComponentType

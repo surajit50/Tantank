@@ -1,14 +1,14 @@
-import { Table, RowData } from '../types'
 import { getMemoOptions, memo } from '../utils'
+import type { RowData, Table } from '../types'
 
 export function getFacetedMinMaxValues<TData extends RowData>(): (
   table: Table<TData>,
-  columnId: string
+  columnId: string,
 ) => () => undefined | [number, number] {
   return (table, columnId) =>
     memo(
       () => [table.getColumn(columnId)?.getFacetedRowModel()],
-      facetedRowModel => {
+      (facetedRowModel) => {
         if (!facetedRowModel) return undefined
 
         const firstValue =
@@ -18,7 +18,7 @@ export function getFacetedMinMaxValues<TData extends RowData>(): (
           return undefined
         }
 
-        let facetedMinMaxValues: [any, any] = [firstValue, firstValue]
+        const facetedMinMaxValues: [any, any] = [firstValue, firstValue]
 
         for (let i = 0; i < facetedRowModel.flatRows.length; i++) {
           const values =
@@ -37,6 +37,6 @@ export function getFacetedMinMaxValues<TData extends RowData>(): (
 
         return facetedMinMaxValues
       },
-      getMemoOptions(table.options, 'debugTable', 'getFacetedMinMaxValues')
+      getMemoOptions(table.options, 'debugTable', 'getFacetedMinMaxValues'),
     )
 }

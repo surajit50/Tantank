@@ -1,12 +1,12 @@
-import {
-  Column,
-  Table,
-  AccessorFn,
-  ColumnDef,
-  RowData,
-  ColumnDefResolved,
-} from '../types'
 import { getMemoOptions, memo } from '../utils'
+import type {
+  AccessorFn,
+  Column,
+  ColumnDef,
+  ColumnDefResolved,
+  RowData,
+  Table,
+} from '../types'
 
 export interface CoreColumn<TData extends RowData, TValue> {
   /**
@@ -26,7 +26,7 @@ export interface CoreColumn<TData extends RowData, TValue> {
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/column#columns)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/column-defs)
    */
-  columns: Column<TData, TValue>[]
+  columns: Array<Column<TData, TValue>>
   /**
    * The depth of the column (if grouped) relative to the root column def array.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/column#depth)
@@ -38,13 +38,13 @@ export interface CoreColumn<TData extends RowData, TValue> {
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/column#getflatcolumns)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/column-defs)
    */
-  getFlatColumns: () => Column<TData, TValue>[]
+  getFlatColumns: () => Array<Column<TData, TValue>>
   /**
    * Returns an array of all leaf-node columns for this column. If a column has no children, it is considered the only leaf-node column.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/column#getleafcolumns)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/column-defs)
    */
-  getLeafColumns: () => Column<TData, TValue>[]
+  getLeafColumns: () => Array<Column<TData, TValue>>
   /**
    * The resolved unique identifier for the column resolved in this priority:
       - A manual `id` property from the column def
@@ -66,7 +66,7 @@ export function createColumn<TData extends RowData, TValue>(
   table: Table<TData>,
   columnDef: ColumnDef<TData, TValue>,
   depth: number,
-  parent?: Column<TData, TValue>
+  parent?: Column<TData, TValue>,
 ): Column<TData, TValue> {
   const defaultColumn = table._getDefaultColumnDef()
 
@@ -77,7 +77,7 @@ export function createColumn<TData extends RowData, TValue>(
 
   const accessorKey = resolvedColumnDef.accessorKey
 
-  let id =
+  const id =
     resolvedColumnDef.id ??
     (accessorKey ? accessorKey.replace('.', '_') : undefined) ??
     (typeof resolvedColumnDef.header === 'string'
@@ -92,13 +92,13 @@ export function createColumn<TData extends RowData, TValue>(
     // Support deep accessor keys
     if (accessorKey.includes('.')) {
       accessorFn = (originalRow: TData) => {
-        let result = originalRow as Record<string, any>
+        let result = originalRow as Record<string, any> | undefined
 
         for (const key of accessorKey.split('.')) {
-          result = result?.[key]
+          result = result![key]
           if (process.env.NODE_ENV !== 'production' && result === undefined) {
             console.warn(
-              `"${key}" in deeply nested key "${accessorKey}" returned undefined.`
+              `"${key}" in deeply nested key "${accessorKey}" returned undefined.`,
             )
           }
         }
@@ -116,13 +116,13 @@ export function createColumn<TData extends RowData, TValue>(
       throw new Error(
         resolvedColumnDef.accessorFn
           ? `Columns require an id when using an accessorFn`
-          : `Columns require an id when using a non-string header`
+          : `Columns require an id when using a non-string header`,
       )
     }
     throw new Error()
   }
 
-  let column: CoreColumn<TData, any> = {
+  const column: CoreColumn<TData, any> = {
     id: `${String(id)}`,
     accessorFn,
     parent: parent as any,
@@ -134,17 +134,17 @@ export function createColumn<TData extends RowData, TValue>(
       () => {
         return [
           column as Column<TData, TValue>,
-          ...column.columns?.flatMap(d => d.getFlatColumns()),
+          ...column.columns.flatMap((d) => d.getFlatColumns()),
         ]
       },
-      getMemoOptions(table.options, 'debugColumns', 'column.getFlatColumns')
+      getMemoOptions(table.options, 'debugColumns', 'column.getFlatColumns'),
     ),
     getLeafColumns: memo(
       () => [table._getOrderColumnsFn()],
-      orderColumns => {
-        if (column.columns?.length) {
-          let leafColumns = column.columns.flatMap(column =>
-            column.getLeafColumns()
+      (orderColumns) => {
+        if (column.columns.length) {
+          const leafColumns = column.columns.flatMap((col) =>
+            col.getLeafColumns(),
           )
 
           return orderColumns(leafColumns)
@@ -152,7 +152,7 @@ export function createColumn<TData extends RowData, TValue>(
 
         return [column as Column<TData, TValue>]
       },
-      getMemoOptions(table.options, 'debugColumns', 'column.getLeafColumns')
+      getMemoOptions(table.options, 'debugColumns', 'column.getLeafColumns'),
     ),
   }
 

@@ -1,11 +1,11 @@
-import { Table, RowModel, Row, RowData } from '../types'
 import { getMemoOptions, memo } from '../utils'
 import { expandRows } from './getExpandedRowModel'
+import type { Row, RowData, RowModel, Table } from '../types'
 
 export function getPaginationRowModel<TData extends RowData>(opts?: {
   initialSync: boolean
 }): (table: Table<TData>) => () => RowModel<TData> {
-  return table =>
+  return (table) =>
     memo(
       () => [
         table.getState().pagination,
@@ -55,6 +55,6 @@ export function getPaginationRowModel<TData extends RowData>(opts?: {
 
         return paginatedRowModel
       },
-      getMemoOptions(table.options, 'debugTable', 'getPaginationRowModel')
+      getMemoOptions(table.options, 'debugTable', 'getPaginationRowModel'),
     )
 }

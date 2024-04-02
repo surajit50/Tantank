@@ -67,7 +67,7 @@ const config = {
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/no-unnecessary-condition': 'error',
+    '@typescript-eslint/no-unnecessary-condition': 'warn',
     '@typescript-eslint/no-unnecessary-type-assertion': 'error',
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-inferrable-types': [
@@ -102,7 +102,8 @@ const config = {
     'no-empty': 'off',
     'no-prototype-builtins': 'off',
     'no-redeclare': 'off',
-    'no-shadow': 'error',
+    'no-constant-condition': 'warn',
+    'no-shadow': 'warn',
     'no-undef': 'off',
     'sort-imports': ['error', { ignoreDeclarationSort: true }],
   },

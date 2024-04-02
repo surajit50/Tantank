@@ -1,5 +1,6 @@
-import { RowData, Cell, Column, Row, Table } from '../types'
-import { Getter, getMemoOptions, memo } from '../utils'
+import { getMemoOptions, memo } from '../utils'
+import type { Cell, Column, Row, RowData, Table } from '../types'
+import type { Getter } from '../utils'
 
 export interface CellContext<TData extends RowData, TValue> {
   cell: Cell<TData, TValue>
@@ -53,7 +54,7 @@ export function createCell<TData extends RowData, TValue>(
   table: Table<TData>,
   row: Row<TData>,
   column: Column<TData, TValue>,
-  columnId: string
+  columnId: string,
 ): Cell<TData, TValue> {
   const getRenderValue = () =>
     cell.getValue() ?? table.options.renderFallbackValue
@@ -74,17 +75,12 @@ export function createCell<TData extends RowData, TValue>(
         getValue: cell.getValue,
         renderValue: cell.renderValue,
       }),
-      getMemoOptions(table.options, 'debugCells', 'cell.getContext')
+      getMemoOptions(table.options, 'debugCells', 'cell.getContext'),
     ),
   }
 
-  table._features.forEach(feature => {
-    feature.createCell?.(
-      cell as Cell<TData, TValue>,
-      column,
-      row as Row<TData>,
-      table
-    )
+  table._features.forEach((feature) => {
+    feature.createCell?.(cell as Cell<TData, TValue>, column, row, table)
   }, {})
 
   return cell as Cell<TData, TValue>

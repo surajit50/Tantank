@@ -1,17 +1,17 @@
-import { Table, RowData } from '../types'
 import { getMemoOptions, memo } from '../utils'
+import type { RowData, Table } from '../types'
 
 export function getFacetedUniqueValues<TData extends RowData>(): (
   table: Table<TData>,
-  columnId: string
+  columnId: string,
 ) => () => Map<any, number> {
   return (table, columnId) =>
     memo(
       () => [table.getColumn(columnId)?.getFacetedRowModel()],
-      facetedRowModel => {
+      (facetedRowModel) => {
         if (!facetedRowModel) return new Map()
 
-        let facetedUniqueValues = new Map<any, number>()
+        const facetedUniqueValues = new Map<any, number>()
 
         for (let i = 0; i < facetedRowModel.flatRows.length; i++) {
           const values =
@@ -23,7 +23,7 @@ export function getFacetedUniqueValues<TData extends RowData>(): (
             if (facetedUniqueValues.has(value)) {
               facetedUniqueValues.set(
                 value,
-                (facetedUniqueValues.get(value) ?? 0) + 1
+                (facetedUniqueValues.get(value) ?? 0) + 1,
               )
             } else {
               facetedUniqueValues.set(value, 1)
@@ -36,7 +36,7 @@ export function getFacetedUniqueValues<TData extends RowData>(): (
       getMemoOptions(
         table.options,
         'debugTable',
-        `getFacetedUniqueValues_${columnId}`
-      )
+        `getFacetedUniqueValues_${columnId}`,
+      ),
     )
 }

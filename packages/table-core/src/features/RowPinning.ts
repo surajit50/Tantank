@@ -1,18 +1,18 @@
-import {
+import { getMemoOptions, makeStateUpdater, memo } from '../utils'
+import type {
   OnChangeFn,
-  Updater,
-  Table,
   Row,
   RowData,
+  Table,
   TableFeature,
+  Updater,
 } from '../types'
-import { getMemoOptions, makeStateUpdater, memo } from '../utils'
 
 export type RowPinningPosition = false | 'top' | 'bottom'
 
 export interface RowPinningState {
-  bottom?: string[]
-  top?: string[]
+  bottom?: Array<string>
+  top?: Array<string>
 }
 
 export interface RowPinningTableState {
@@ -71,24 +71,24 @@ export interface RowPinningRow {
   pin: (
     position: RowPinningPosition,
     includeLeafRows?: boolean,
-    includeParentRows?: boolean
+    includeParentRows?: boolean,
   ) => void
 }
 
 export interface RowPinningInstance<TData extends RowData> {
-  _getPinnedRows: (position: 'top' | 'bottom') => Row<TData>[]
+  _getPinnedRows: (position: 'top' | 'bottom') => Array<Row<TData>>
   /**
    * Returns all bottom pinned rows.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/features/row-pinning#getbottomrows)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/row-pinning)
    */
-  getBottomRows: () => Row<TData>[]
+  getBottomRows: () => Array<Row<TData>>
   /**
    * Returns all rows that are not pinned to the top or bottom.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/features/row-pinning#getcenterrows)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/row-pinning)
    */
-  getCenterRows: () => Row<TData>[]
+  getCenterRows: () => Array<Row<TData>>
   /**
    * Returns whether or not any rows are pinned. Optionally specify to only check for pinned rows in either the `top` or `bottom` position.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/features/row-pinning#getissomerowspinned)
@@ -100,7 +100,7 @@ export interface RowPinningInstance<TData extends RowData> {
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/features/row-pinning#gettoprows)
    * @link [Guide](https://tanstack.com/table/v8/docs/guide/row-pinning)
    */
-  getTopRows: () => Row<TData>[]
+  getTopRows: () => Array<Row<TData>>
   /**
    * Resets the **rowPinning** state to `initialState.rowPinning`, or `true` can be passed to force a default blank state reset to `{ top: [], bottom: [], }`.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/features/row-pinning#resetrowpinning)
@@ -131,7 +131,7 @@ export const RowPinning: TableFeature = {
   },
 
   getDefaultOptions: <TData extends RowData>(
-    table: Table<TData>
+    table: Table<TData>,
   ): RowPinningDefaultOptions => {
     return {
       onRowPinningChange: makeStateUpdater('rowPinning', table),
@@ -140,7 +140,7 @@ export const RowPinning: TableFeature = {
 
   createRow: <TData extends RowData>(
     row: Row<TData>,
-    table: Table<TData>
+    table: Table<TData>,
   ): void => {
     row.pin = (position, includeLeafRows, includeParentRows) => {
       const leafRowIds = includeLeafRows
@@ -151,12 +151,12 @@ export const RowPinning: TableFeature = {
         : []
       const rowIds = new Set([...parentRowIds, row.id, ...leafRowIds])
 
-      table.setRowPinning(old => {
+      table.setRowPinning((old) => {
         if (position === 'bottom') {
           return {
-            top: (old?.top ?? []).filter(d => !rowIds?.has(d)),
+            top: (old.top ?? []).filter((d) => !rowIds.has(d)),
             bottom: [
-              ...(old?.bottom ?? []).filter(d => !rowIds?.has(d)),
+              ...(old.bottom ?? []).filter((d) => !rowIds.has(d)),
               ...Array.from(rowIds),
             ],
           }
@@ -165,16 +165,16 @@ export const RowPinning: TableFeature = {
         if (position === 'top') {
           return {
             top: [
-              ...(old?.top ?? []).filter(d => !rowIds?.has(d)),
+              ...(old.top ?? []).filter((d) => !rowIds.has(d)),
               ...Array.from(rowIds),
             ],
-            bottom: (old?.bottom ?? []).filter(d => !rowIds?.has(d)),
+            bottom: (old.bottom ?? []).filter((d) => !rowIds.has(d)),
           }
         }
 
         return {
-          top: (old?.top ?? []).filter(d => !rowIds?.has(d)),
-          bottom: (old?.bottom ?? []).filter(d => !rowIds?.has(d)),
+          top: (old.top ?? []).filter((d) => !rowIds.has(d)),
+          bottom: (old.bottom ?? []).filter((d) => !rowIds.has(d)),
         }
       })
     }
@@ -190,8 +190,8 @@ export const RowPinning: TableFeature = {
 
       const { top, bottom } = table.getState().rowPinning
 
-      const isTop = rowIds.some(d => top?.includes(d))
-      const isBottom = rowIds.some(d => bottom?.includes(d))
+      const isTop = rowIds.some((d) => top?.includes(d))
+      const isBottom = rowIds.some((d) => bottom?.includes(d))
 
       return isTop ? 'top' : isBottom ? 'bottom' : false
     }
@@ -201,23 +201,24 @@ export const RowPinning: TableFeature = {
 
       const visiblePinnedRowIds = table
         ._getPinnedRows(position)
-        ?.map(({ id }) => id)
+        .map(({ id }) => id)
 
-      return visiblePinnedRowIds?.indexOf(row.id) ?? -1
+      return visiblePinnedRowIds.indexOf(row.id) ?? -1
     }
   },
 
   createTable: <TData extends RowData>(table: Table<TData>): void => {
-    table.setRowPinning = updater => table.options.onRowPinningChange?.(updater)
+    table.setRowPinning = (updater) =>
+      table.options.onRowPinningChange?.(updater)
 
-    table.resetRowPinning = defaultState =>
+    table.resetRowPinning = (defaultState) =>
       table.setRowPinning(
         defaultState
           ? getDefaultRowPinningState()
-          : table.initialState?.rowPinning ?? getDefaultRowPinningState()
+          : table.initialState.rowPinning ?? getDefaultRowPinningState(),
       )
 
-    table.getIsSomeRowsPinned = position => {
+    table.getIsSomeRowsPinned = (position) => {
       const pinningState = table.getState().rowPinning
 
       if (!position) {
@@ -227,7 +228,7 @@ export const RowPinning: TableFeature = {
     }
 
     table._getPinnedRows = memo(
-      position => [
+      (position) => [
         table.getRowModel().rows,
         table.getState().rowPinning[position!],
         position,
@@ -237,20 +238,20 @@ export const RowPinning: TableFeature = {
           table.options.keepPinnedRows ?? true
             ? //get all rows that are pinned even if they would not be otherwise visible
               //account for expanded parent rows, but not pagination or filtering
-              (pinnedRowIds ?? []).map(rowId => {
+              (pinnedRowIds ?? []).map((rowId) => {
                 const row = table.getRow(rowId, true)
                 return row.getIsAllParentsExpanded() ? row : null
               })
             : //else get only visible rows that are pinned
               (pinnedRowIds ?? []).map(
-                rowId => visibleRows.find(row => row.id === rowId)!
+                (rowId) => visibleRows.find((row) => row.id === rowId)!,
               )
 
-        return rows
-          .filter(Boolean)
-          .map(d => ({ ...d, position })) as Row<TData>[]
+        return rows.filter(Boolean).map((d) => ({ ...d, position })) as Array<
+          Row<TData>
+        >
       },
-      getMemoOptions(table.options, 'debugRows', '_getPinnedRows')
+      getMemoOptions(table.options, 'debugRows', '_getPinnedRows'),
     )
 
     table.getTopRows = () => table._getPinnedRows('top')
@@ -265,9 +266,9 @@ export const RowPinning: TableFeature = {
       ],
       (allRows, top, bottom) => {
         const topAndBottom = new Set([...(top ?? []), ...(bottom ?? [])])
-        return allRows.filter(d => !topAndBottom.has(d.id))
+        return allRows.filter((d) => !topAndBottom.has(d.id))
       },
-      getMemoOptions(table.options, 'debugRows', 'getCenterRows')
+      getMemoOptions(table.options, 'debugRows', 'getCenterRows'),
     )
   },
 }

@@ -1,14 +1,15 @@
-import {
+import { createTable } from '@tanstack/table-core'
+import { SvelteComponent } from 'svelte/internal'
+import { derived, get, readable, writable } from 'svelte/store'
+import Placeholder from './placeholder'
+import { renderComponent } from './render-component'
+import type { Readable } from 'svelte/store'
+import type { ComponentType } from 'svelte'
+import type {
   RowData,
-  createTable,
   TableOptions,
   TableOptionsResolved,
 } from '@tanstack/table-core'
-import Placeholder from './placeholder'
-import type { ComponentType } from 'svelte'
-import { SvelteComponent } from 'svelte/internal'
-import { readable, writable, derived, Readable, get } from 'svelte/store'
-import { renderComponent } from './render-component'
 
 export { renderComponent } from './render-component'
 
@@ -23,7 +24,7 @@ function isSvelteServerComponent(component: any) {
 }
 
 function isSvelteClientComponent(component: any) {
-  let isHMR = '__SVELTE_HMR' in window
+  const isHMR = '__SVELTE_HMR' in window
 
   return (
     component.prototype instanceof SvelteComponent ||
@@ -69,7 +70,7 @@ export function flexRender(component: any, props: any): ComponentType | null {
 type ReadableOrVal<T> = T | Readable<T>
 
 export function createSvelteTable<TData extends RowData>(
-  options: ReadableOrVal<TableOptions<TData>>
+  options: ReadableOrVal<TableOptions<TData>>,
 ) {
   let optionsStore: Readable<TableOptions<TData>>
 
@@ -79,35 +80,35 @@ export function createSvelteTable<TData extends RowData>(
     optionsStore = readable(options)
   }
 
-  let resolvedOptions: TableOptionsResolved<TData> = {
+  const resolvedOptions: TableOptionsResolved<TData> = {
     state: {}, // Dummy state
     onStateChange: () => {}, // noop
     renderFallbackValue: null,
     ...get(optionsStore),
   }
 
-  let table = createTable(resolvedOptions)
+  const table = createTable(resolvedOptions)
 
-  let stateStore = writable(/** @type {number} */ table.initialState)
+  const stateStore = writable(/** @type {number} */ table.initialState)
   // combine stores
-  let stateOptionsStore = derived([stateStore, optionsStore], s => s)
+  const stateOptionsStore = derived([stateStore, optionsStore], (s) => s)
   const tableReadable = readable(table, function start(set) {
     const unsubscribe = stateOptionsStore.subscribe(([state, options]) => {
-      table.setOptions(prev => {
+      table.setOptions((prev) => {
         return {
           ...prev,
           ...options,
           state: { ...state, ...options.state },
           // Similarly, we'll maintain both our internal state and any user-provided
           // state.
-          onStateChange: updater => {
+          onStateChange: (updater) => {
             if (updater instanceof Function) {
               stateStore.update(updater)
             } else {
               stateStore.set(updater)
             }
 
-            resolvedOptions.onStateChange?.(updater)
+            resolvedOptions.onStateChange(updater)
           },
         }
       })

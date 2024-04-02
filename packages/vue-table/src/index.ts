@@ -1,11 +1,11 @@
-import {
-  TableOptions,
-  createTable,
-  TableOptionsResolved,
-  RowData,
-} from '@tanstack/table-core'
-import { h, watchEffect, ref, defineComponent } from 'vue'
+import { createTable } from '@tanstack/table-core'
+import { defineComponent, h, ref, watchEffect } from 'vue'
 import { mergeProxy } from './merge-proxy'
+import type {
+  RowData,
+  TableOptions,
+  TableOptionsResolved,
+} from '@tanstack/table-core'
 
 export * from '@tanstack/table-core'
 
@@ -26,7 +26,7 @@ export const FlexRender = defineComponent({
 })
 
 export function useVueTable<TData extends RowData>(
-  options: TableOptions<TData>
+  options: TableOptions<TData>,
 ) {
   const resolvedOptions: TableOptionsResolved<TData> = mergeProxy(
     {
@@ -35,12 +35,12 @@ export function useVueTable<TData extends RowData>(
       renderFallbackValue: null,
       mergeOptions(
         defaultOptions: TableOptions<TData>,
-        options: TableOptions<TData>
+        options: TableOptions<TData>,
       ) {
         return mergeProxy(defaultOptions, options)
       },
     },
-    options
+    options,
   )
 
   const table = createTable<TData>(resolvedOptions)
@@ -48,7 +48,7 @@ export function useVueTable<TData extends RowData>(
   const state = ref(table.initialState)
 
   watchEffect(() => {
-    table.setOptions(prev => {
+    table.setOptions((prev) => {
       const stateProxy = new Proxy({} as typeof state.value, {
         get: (_, prop) => state.value[prop as keyof typeof state.value],
       })

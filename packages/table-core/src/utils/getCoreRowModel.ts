@@ -1,18 +1,18 @@
 import { createRow } from '../core/row'
-import { Table, Row, RowModel, RowData } from '../types'
 import { getMemoOptions, memo } from '../utils'
+import type { Row, RowData, RowModel, Table } from '../types'
 
 export function getCoreRowModel<TData extends RowData>(): (
-  table: Table<TData>
+  table: Table<TData>,
 ) => () => RowModel<TData> {
-  return table =>
+  return (table) =>
     memo(
       () => [table.options.data],
       (
-        data
+        data,
       ): {
-        rows: Row<TData>[]
-        flatRows: Row<TData>[]
+        rows: Array<Row<TData>>
+        flatRows: Array<Row<TData>>
         rowsById: Record<string, Row<TData>>
       } => {
         const rowModel: RowModel<TData> = {
@@ -22,11 +22,11 @@ export function getCoreRowModel<TData extends RowData>(): (
         }
 
         const accessRows = (
-          originalRows: TData[],
+          originalRows: Array<TData>,
           depth = 0,
-          parentRow?: Row<TData>
-        ): Row<TData>[] => {
-          const rows = [] as Row<TData>[]
+          parentRow?: Row<TData>,
+        ): Array<Row<TData>> => {
+          const rows = [] as Array<Row<TData>>
 
           for (let i = 0; i < originalRows.length; i++) {
             // This could be an expensive check at scale, so we should move it somewhere else, but where?
@@ -39,12 +39,12 @@ export function getCoreRowModel<TData extends RowData>(): (
             // Make the row
             const row = createRow(
               table,
-              table._getRowId(originalRows[i]!, i, parentRow),
-              originalRows[i]!,
+              table._getRowId(originalRows[i], i, parentRow),
+              originalRows[i],
               i,
               depth,
               undefined,
-              parentRow?.id
+              parentRow?.id,
             )
 
             // Keep track of every row in a flat array
@@ -56,10 +56,7 @@ export function getCoreRowModel<TData extends RowData>(): (
 
             // Get the original subrows
             if (table.options.getSubRows) {
-              row.originalSubRows = table.options.getSubRows(
-                originalRows[i]!,
-                i
-              )
+              row.originalSubRows = table.options.getSubRows(originalRows[i], i)
 
               // Then recursively access them
               if (row.originalSubRows?.length) {
@@ -76,7 +73,7 @@ export function getCoreRowModel<TData extends RowData>(): (
         return rowModel
       },
       getMemoOptions(table.options, 'debugTable', 'getRowModel', () =>
-        table._autoResetPageIndex()
-      )
+        table._autoResetPageIndex(),
+      ),
     )
 }

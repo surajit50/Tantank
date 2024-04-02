@@ -1,19 +1,19 @@
-import { CoreOptions, CoreTableState, CoreInstance } from './core/table'
-import {
-  VisibilityInstance,
-  VisibilityTableState,
+import type { CoreInstance, CoreOptions, CoreTableState } from './core/table'
+import type {
   VisibilityColumn as ColumnVisibilityColumn,
-  VisibilityOptions,
   VisibilityColumnDef,
+  VisibilityInstance,
+  VisibilityOptions,
   VisibilityRow,
+  VisibilityTableState,
 } from './features/ColumnVisibility'
-import {
+import type {
   ColumnOrderColumn,
   ColumnOrderInstance,
   ColumnOrderOptions,
   ColumnOrderTableState,
 } from './features/ColumnOrdering'
-import {
+import type {
   ColumnPinningColumn,
   ColumnPinningColumnDef,
   ColumnPinningInstance,
@@ -21,21 +21,21 @@ import {
   ColumnPinningRow,
   ColumnPinningTableState,
 } from './features/ColumnPinning'
-import {
+import type {
   RowPinningInstance,
   RowPinningOptions,
   RowPinningRow,
   RowPinningTableState,
 } from './features/RowPinning'
-import {
+import type {
   CoreHeader,
   CoreHeaderGroup,
   HeaderContext,
   HeadersInstance,
 } from './core/headers'
-import { FacetedColumn, FacetedOptions } from './features/ColumnFaceting'
-import { GlobalFacetingInstance } from './features/GlobalFaceting'
-import {
+import type { FacetedColumn, FacetedOptions } from './features/ColumnFaceting'
+import type { GlobalFacetingInstance } from './features/GlobalFaceting'
+import type {
   ColumnFiltersColumn,
   ColumnFiltersColumnDef,
   ColumnFiltersInstance,
@@ -43,21 +43,21 @@ import {
   ColumnFiltersRow,
   ColumnFiltersTableState,
 } from './features/ColumnFiltering'
-import {
+import type {
   GlobalFilterColumn,
   GlobalFilterColumnDef,
   GlobalFilterInstance,
   GlobalFilterOptions,
   GlobalFilterTableState,
 } from './features/GlobalFiltering'
-import {
+import type {
   SortingColumn,
   SortingColumnDef,
   SortingInstance,
   SortingOptions,
   SortingTableState,
 } from './features/RowSorting'
-import {
+import type {
   GroupingCell,
   GroupingColumn,
   GroupingColumnDef,
@@ -66,13 +66,13 @@ import {
   GroupingRow,
   GroupingTableState,
 } from './features/ColumnGrouping'
-import {
+import type {
   ExpandedInstance,
   ExpandedOptions,
-  ExpandedTableState,
   ExpandedRow,
+  ExpandedTableState,
 } from './features/RowExpanding'
-import {
+import type {
   ColumnSizingColumn,
   ColumnSizingColumnDef,
   ColumnSizingHeader,
@@ -80,29 +80,29 @@ import {
   ColumnSizingOptions,
   ColumnSizingTableState,
 } from './features/ColumnSizing'
-import {
+import type {
   PaginationInitialTableState,
   PaginationInstance,
   PaginationOptions,
   PaginationTableState,
 } from './features/RowPagination'
-import {
+import type {
   RowSelectionInstance,
   RowSelectionOptions,
   RowSelectionRow,
   RowSelectionTableState,
 } from './features/RowSelection'
-import { CoreRow } from './core/row'
-import { PartialKeys, UnionToIntersection } from './utils'
-import { CellContext, CoreCell } from './core/cell'
-import { CoreColumn } from './core/column'
+import type { CoreRow } from './core/row'
+import type { PartialKeys, UnionToIntersection } from './utils'
+import type { CellContext, CoreCell } from './core/cell'
+import type { CoreColumn } from './core/column'
 
 export interface TableFeature<TData extends RowData = any> {
   createCell?: (
     cell: Cell<TData, unknown>,
     column: Column<TData>,
     row: Row<TData>,
-    table: Table<TData>
+    table: Table<TData>,
   ) => void
   createColumn?: (column: Column<TData, unknown>, table: Table<TData>) => void
   createHeader?: (header: Header<TData, unknown>, table: Table<TData>) => void
@@ -110,7 +110,7 @@ export interface TableFeature<TData extends RowData = any> {
   createTable?: (table: Table<TData>) => void
   getDefaultColumnDef?: () => Partial<ColumnDef<TData, unknown>>
   getDefaultOptions?: (
-    table: Table<TData>
+    table: Table<TData>,
   ) => Partial<TableOptionsResolved<TData>>
   getInitialState?: (initialState?: InitialTableState) => Partial<TableState>
 }
@@ -130,7 +130,7 @@ export interface AggregationFns {}
 export type Updater<T> = T | ((old: T) => T)
 export type OnChangeFn<T> = (updaterOrValue: Updater<T>) => void
 
-export type RowData = unknown | object | any[]
+export type RowData = unknown | object | Array<any>
 
 export type AnyRender = (Comp: any, props: any) => any
 
@@ -219,14 +219,14 @@ export interface Row<TData extends RowData>
     ExpandedRow {}
 
 export interface RowModel<TData extends RowData> {
-  rows: Row<TData>[]
-  flatRows: Row<TData>[]
+  rows: Array<Row<TData>>
+  flatRows: Array<Row<TData>>
   rowsById: Record<string, Row<TData>>
 }
 
 export type AccessorFn<TData extends RowData, TValue = unknown> = (
   originalRow: TData,
-  index: number
+  index: number,
 ) => TValue
 
 export type ColumnDefTemplate<TProps extends object> =
@@ -264,7 +264,7 @@ interface ColumnDefExtensions<TData extends RowData, TValue = unknown>
 
 export interface ColumnDefBase<TData extends RowData, TValue = unknown>
   extends ColumnDefExtensions<TData, TValue> {
-  getUniqueValues?: AccessorFn<TData, unknown[]>
+  getUniqueValues?: AccessorFn<TData, Array<unknown>>
   footer?: ColumnDefTemplate<HeaderContext<TData, TValue>>
   cell?: ColumnDefTemplate<CellContext<TData, TValue>>
   meta?: ColumnMeta<TData, TValue>
@@ -285,7 +285,7 @@ export type DisplayColumnDef<
 
 interface GroupColumnDefBase<TData extends RowData, TValue = unknown>
   extends ColumnDefBase<TData, TValue> {
-  columns?: ColumnDef<TData, any>[]
+  columns?: Array<ColumnDef<TData, any>>
 }
 
 export type GroupColumnDef<

@@ -1,10 +1,10 @@
-import { Table, Row, RowModel, RowData } from '../types'
 import { getMemoOptions, memo } from '../utils'
+import type { Row, RowData, RowModel, Table } from '../types'
 
 export function getExpandedRowModel<TData extends RowData>(): (
-  table: Table<TData>
+  table: Table<TData>,
 ) => () => RowModel<TData> {
-  return table =>
+  return (table) =>
     memo(
       () => [
         table.getState().expanded,
@@ -26,17 +26,17 @@ export function getExpandedRowModel<TData extends RowData>(): (
 
         return expandRows(rowModel)
       },
-      getMemoOptions(table.options, 'debugTable', 'getExpandedRowModel')
+      getMemoOptions(table.options, 'debugTable', 'getExpandedRowModel'),
     )
 }
 
 export function expandRows<TData extends RowData>(rowModel: RowModel<TData>) {
-  const expandedRows: Row<TData>[] = []
+  const expandedRows: Array<Row<TData>> = []
 
   const handleRow = (row: Row<TData>) => {
     expandedRows.push(row)
 
-    if (row.subRows?.length && row.getIsExpanded()) {
+    if (row.subRows.length && row.getIsExpanded()) {
       row.subRows.forEach(handleRow)
     }
   }

@@ -1,25 +1,25 @@
-import { Table, Row, RowModel, RowData } from '../types'
-import { SortingFn } from '../features/RowSorting'
 import { getMemoOptions, memo } from '../utils'
+import type { Row, RowData, RowModel, Table } from '../types'
+import type { SortingFn } from '../features/RowSorting'
 
 export function getSortedRowModel<TData extends RowData>(): (
-  table: Table<TData>
+  table: Table<TData>,
 ) => () => RowModel<TData> {
-  return table =>
+  return (table) =>
     memo(
       () => [table.getState().sorting, table.getPreSortedRowModel()],
       (sorting, rowModel) => {
-        if (!rowModel.rows.length || !sorting?.length) {
+        if (!rowModel.rows.length || !sorting.length) {
           return rowModel
         }
 
         const sortingState = table.getState().sorting
 
-        const sortedFlatRows: Row<TData>[] = []
+        const sortedFlatRows: Array<Row<TData>> = []
 
         // Filter out sortings that correspond to non existing columns
         const availableSorting = sortingState.filter(
-          sort => table.getColumn(sort.id)?.getCanSort()
+          (sort) => table.getColumn(sort.id)?.getCanSort(),
         )
 
         const columnInfoById: Record<
@@ -31,7 +31,7 @@ export function getSortedRowModel<TData extends RowData>(): (
           }
         > = {}
 
-        availableSorting.forEach(sortEntry => {
+        availableSorting.forEach((sortEntry) => {
           const column = table.getColumn(sortEntry.id)
           if (!column) return
 
@@ -42,16 +42,16 @@ export function getSortedRowModel<TData extends RowData>(): (
           }
         })
 
-        const sortData = (rows: Row<TData>[]) => {
+        const sortData = (rows: Array<Row<TData>>) => {
           // This will also perform a stable sorting using the row index
           // if needed.
-          const sortedData = rows.map(row => ({ ...row }))
+          const sortedData = rows.map((row) => ({ ...row }))
 
           sortedData.sort((rowA, rowB) => {
             for (let i = 0; i < availableSorting.length; i += 1) {
               const sortEntry = availableSorting[i]!
               const columnInfo = columnInfoById[sortEntry.id]!
-              const isDesc = sortEntry?.desc ?? false
+              const isDesc = sortEntry.desc ?? false
 
               let sortInt = 0
 
@@ -95,9 +95,9 @@ export function getSortedRowModel<TData extends RowData>(): (
           })
 
           // If there are sub-rows, sort them
-          sortedData.forEach(row => {
+          sortedData.forEach((row) => {
             sortedFlatRows.push(row)
-            if (row.subRows?.length) {
+            if (row.subRows.length) {
               row.subRows = sortData(row.subRows)
             }
           })
@@ -112,7 +112,7 @@ export function getSortedRowModel<TData extends RowData>(): (
         }
       },
       getMemoOptions(table.options, 'debugTable', 'getSortedRowModel', () =>
-        table._autoResetPageIndex()
-      )
+        table._autoResetPageIndex(),
+      ),
     )
 }

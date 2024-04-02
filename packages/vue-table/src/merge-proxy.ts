@@ -8,7 +8,7 @@ const $PROXY = Symbol('merge-proxy')
 const propTraps: ProxyHandler<{
   get: (k: string | number | symbol) => any
   has: (k: string | number | symbol) => boolean
-  keys: () => string[]
+  keys: () => Array<string>
 }> = {
   get(_, property, receiver) {
     if (property === $PROXY) return receiver
@@ -36,16 +36,16 @@ const propTraps: ProxyHandler<{
 }
 
 type UnboxLazy<T> = T extends () => infer U ? U : T
-type BoxedTupleTypes<T extends any[]> = {
+type BoxedTupleTypes<T extends Array<any>> = {
   [P in keyof T]: [UnboxLazy<T[P]>]
-}[Exclude<keyof T, keyof any[]>]
+}[Exclude<keyof T, keyof Array<any>>]
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
+  k: infer I,
 ) => void
   ? I
   : never
 type UnboxIntersection<T> = T extends { 0: infer U } ? U : never
-type MergeProxy<T extends any[]> = UnboxIntersection<
+type MergeProxy<T extends Array<any>> = UnboxIntersection<
   UnionToIntersection<BoxedTupleTypes<T>>
 >
 
@@ -53,7 +53,7 @@ function resolveSource(s: any) {
   return 'value' in s ? s.value : s
 }
 
-export function mergeProxy<T extends any[]>(...sources: T): MergeProxy<T>
+export function mergeProxy<T extends Array<any>>(...sources: T): MergeProxy<T>
 export function mergeProxy(...sources: any): any {
   return new Proxy(
     {
@@ -76,6 +76,6 @@ export function mergeProxy(...sources: any): any {
         return [...Array.from(new Set(keys))]
       },
     },
-    propTraps
+    propTraps,
   )
 }

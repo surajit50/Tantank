@@ -1,5 +1,5 @@
-import { RowModel } from '..'
-import { Table, RowData, TableFeature } from '../types'
+import type { RowModel } from '..'
+import type { RowData, Table, TableFeature } from '../types'
 
 export interface GlobalFacetingInstance<TData extends RowData> {
   _getGlobalFacetedMinMaxValues?: () => undefined | [number, number]

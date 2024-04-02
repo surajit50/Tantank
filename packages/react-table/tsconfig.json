@@ -5,5 +5,5 @@
     "rootDir": "./src",
     "outDir": "./build/lib"
   },
-  "include": ["src", ".eslintrc.cjs",]
+  "include": ["src", ".eslintrc.cjs"]
 }

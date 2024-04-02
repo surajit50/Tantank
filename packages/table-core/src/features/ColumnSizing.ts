@@ -1,15 +1,15 @@
-import { _getVisibleLeafColumns } from '..'
-import {
-  RowData,
+import { _getVisibleLeafColumns } from '../features/ColumnVisibility'
+import { getMemoOptions, makeStateUpdater, memo } from '../utils'
+import type {
   Column,
   Header,
   OnChangeFn,
+  RowData,
   Table,
-  Updater,
   TableFeature,
+  Updater,
 } from '../types'
-import { getMemoOptions, makeStateUpdater, memo } from '../utils'
-import { ColumnPinningPosition } from './ColumnPinning'
+import type { ColumnPinningPosition } from './ColumnPinning'
 
 //
 
@@ -21,7 +21,7 @@ export interface ColumnSizingTableState {
 export type ColumnSizingState = Record<string, number>
 
 export interface ColumnSizingInfoState {
-  columnSizingStart: [string, number][]
+  columnSizingStart: Array<[string, number]>
   deltaOffset: null | number
   deltaPercentage: null | number
   isResizingColumn: false | string
@@ -244,7 +244,7 @@ export const ColumnSizing: TableFeature = {
   },
 
   getDefaultOptions: <TData extends RowData>(
-    table: Table<TData>
+    table: Table<TData>,
   ): ColumnSizingDefaultOptions => {
     return {
       columnResizeMode: 'onEnd',
@@ -256,7 +256,7 @@ export const ColumnSizing: TableFeature = {
 
   createColumn: <TData extends RowData, TValue>(
     column: Column<TData, TValue>,
-    table: Table<TData>
+    table: Table<TData>,
   ): void => {
     column.getSize = () => {
       const columnSize = table.getState().columnSizing[column.id]
@@ -264,14 +264,14 @@ export const ColumnSizing: TableFeature = {
       return Math.min(
         Math.max(
           column.columnDef.minSize ?? defaultColumnSizing.minSize,
-          columnSize ?? column.columnDef.size ?? defaultColumnSizing.size
+          columnSize ?? column.columnDef.size ?? defaultColumnSizing.size,
         ),
-        column.columnDef.maxSize ?? defaultColumnSizing.maxSize
+        column.columnDef.maxSize ?? defaultColumnSizing.maxSize,
       )
     }
 
     column.getStart = memo(
-      position => [
+      (position) => [
         position,
         _getVisibleLeafColumns(table, position),
         table.getState().columnSizing,
@@ -280,11 +280,11 @@ export const ColumnSizing: TableFeature = {
         columns
           .slice(0, column.getIndex(position))
           .reduce((sum, column) => sum + column.getSize(), 0),
-      getMemoOptions(table.options, 'debugColumns', 'getStart')
+      getMemoOptions(table.options, 'debugColumns', 'getStart'),
     )
 
     column.getAfter = memo(
-      position => [
+      (position) => [
         position,
         _getVisibleLeafColumns(table, position),
         table.getState().columnSizing,
@@ -293,7 +293,7 @@ export const ColumnSizing: TableFeature = {
         columns
           .slice(column.getIndex(position) + 1)
           .reduce((sum, column) => sum + column.getSize(), 0),
-      getMemoOptions(table.options, 'debugColumns', 'getAfter')
+      getMemoOptions(table.options, 'debugColumns', 'getAfter'),
     )
 
     column.resetSize = () => {
@@ -314,7 +314,7 @@ export const ColumnSizing: TableFeature = {
 
   createHeader: <TData extends RowData, TValue>(
     header: Header<TData, TValue>,
-    table: Table<TData>
+    table: Table<TData>,
   ): void => {
     header.getSize = () => {
       let sum = 0
@@ -339,7 +339,7 @@ export const ColumnSizing: TableFeature = {
 
       return 0
     }
-    header.getResizeHandler = _contextDocument => {
+    header.getResizeHandler = (_contextDocument) => {
       const column = table.getColumn(header.column.id)
       const canResize = column?.getCanResize()
 
@@ -352,16 +352,16 @@ export const ColumnSizing: TableFeature = {
 
         if (isTouchStartEvent(e)) {
           // lets not respond to multiple touches (e.g. 2 or 3 fingers)
-          if (e.touches && e.touches.length > 1) {
+          if (e.touches?.length > 1) {
             return
           }
         }
 
         const startSize = header.getSize()
 
-        const columnSizingStart: [string, number][] = header
-          ? header.getLeafHeaders().map(d => [d.column.id, d.column.getSize()])
-          : [[column.id, column.getSize()]]
+        const columnSizingStart: Array<[string, number]> = header
+          .getLeafHeaders()
+          .map((d) => [d.column.id, d.column.getSize()])
 
         const clientX = isTouchStartEvent(e)
           ? Math.round(e.touches[0]!.clientX)
@@ -371,26 +371,26 @@ export const ColumnSizing: TableFeature = {
 
         const updateOffset = (
           eventType: 'move' | 'end',
-          clientXPos?: number
+          clientXPos?: number,
         ) => {
           if (typeof clientXPos !== 'number') {
             return
           }
 
-          table.setColumnSizingInfo(old => {
+          table.setColumnSizingInfo((old) => {
             const deltaDirection =
               table.options.columnResizeDirection === 'rtl' ? -1 : 1
             const deltaOffset =
-              (clientXPos - (old?.startOffset ?? 0)) * deltaDirection
+              (clientXPos - (old.startOffset ?? 0)) * deltaDirection
             const deltaPercentage = Math.max(
-              deltaOffset / (old?.startSize ?? 0),
-              -0.999999
+              deltaOffset / (old.startSize ?? 0),
+              -0.999999,
             )
 
             old.columnSizingStart.forEach(([columnId, headerSize]) => {
               newColumnSizing[columnId] =
                 Math.round(
-                  Math.max(headerSize + headerSize * deltaPercentage, 0) * 100
+                  Math.max(headerSize + headerSize * deltaPercentage, 0) * 100,
                 ) / 100
             })
 
@@ -405,7 +405,7 @@ export const ColumnSizing: TableFeature = {
             table.options.columnResizeMode === 'onChange' ||
             eventType === 'end'
           ) {
-            table.setColumnSizing(old => ({
+            table.setColumnSizing((old) => ({
               ...old,
               ...newColumnSizing,
             }))
@@ -417,7 +417,7 @@ export const ColumnSizing: TableFeature = {
         const onEnd = (clientXPos?: number) => {
           updateOffset('end', clientXPos)
 
-          table.setColumnSizingInfo(old => ({
+          table.setColumnSizingInfo((old) => ({
             ...old,
             isResizingColumn: false,
             startOffset: null,
@@ -436,11 +436,11 @@ export const ColumnSizing: TableFeature = {
           upHandler: (e: MouseEvent) => {
             contextDocument?.removeEventListener(
               'mousemove',
-              mouseEvents.moveHandler
+              mouseEvents.moveHandler,
             )
             contextDocument?.removeEventListener(
               'mouseup',
-              mouseEvents.upHandler
+              mouseEvents.upHandler,
             )
             onEnd(e.clientX)
           },
@@ -458,11 +458,11 @@ export const ColumnSizing: TableFeature = {
           upHandler: (e: TouchEvent) => {
             contextDocument?.removeEventListener(
               'touchmove',
-              touchEvents.moveHandler
+              touchEvents.moveHandler,
             )
             contextDocument?.removeEventListener(
               'touchend',
-              touchEvents.upHandler
+              touchEvents.upHandler,
             )
             if (e.cancelable) {
               e.preventDefault()
@@ -480,27 +480,27 @@ export const ColumnSizing: TableFeature = {
           contextDocument?.addEventListener(
             'touchmove',
             touchEvents.moveHandler,
-            passiveIfSupported
+            passiveIfSupported,
           )
           contextDocument?.addEventListener(
             'touchend',
             touchEvents.upHandler,
-            passiveIfSupported
+            passiveIfSupported,
           )
         } else {
           contextDocument?.addEventListener(
             'mousemove',
             mouseEvents.moveHandler,
-            passiveIfSupported
+            passiveIfSupported,
           )
           contextDocument?.addEventListener(
             'mouseup',
             mouseEvents.upHandler,
-            passiveIfSupported
+            passiveIfSupported,
           )
         }
 
-        table.setColumnSizingInfo(old => ({
+        table.setColumnSizingInfo((old) => ({
           ...old,
           startOffset: clientX,
           startSize,
@@ -514,21 +514,18 @@ export const ColumnSizing: TableFeature = {
   },
 
   createTable: <TData extends RowData>(table: Table<TData>): void => {
-    table.setColumnSizing = updater =>
+    table.setColumnSizing = (updater) =>
       table.options.onColumnSizingChange?.(updater)
-    table.setColumnSizingInfo = updater =>
+    table.setColumnSizingInfo = (updater) =>
       table.options.onColumnSizingInfoChange?.(updater)
-    table.resetColumnSizing = defaultState => {
-      table.setColumnSizing(
-        defaultState ? {} : table.initialState.columnSizing ?? {}
-      )
+    table.resetColumnSizing = (defaultState) => {
+      table.setColumnSizing(defaultState ? {} : table.initialState.columnSizing)
     }
-    table.resetHeaderSizeInfo = defaultState => {
+    table.resetHeaderSizeInfo = (defaultState) => {
       table.setColumnSizingInfo(
         defaultState
           ? getDefaultColumnSizingInfoState()
-          : table.initialState.columnSizingInfo ??
-              getDefaultColumnSizingInfoState()
+          : table.initialState.columnSizingInfo,
       )
     }
     table.getTotalSize = () =>

@@ -1,4 +1,4 @@
-import { TableOptionsResolved, TableState, Updater } from './types'
+import type { TableOptionsResolved, TableState, Updater } from './types'
 
 export type PartialKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 export type RequiredKeys<T, K extends keyof T> = Omit<T, K> &
@@ -27,7 +27,7 @@ type ComputeRange<
 type Index40 = ComputeRange<40>[number]
 
 // Is this type a tuple?
-type IsTuple<T> = T extends readonly any[] & { length: infer Length }
+type IsTuple<T> = T extends ReadonlyArray<any> & { length: infer Length }
   ? Length extends Index40
     ? T
     : never
@@ -43,13 +43,16 @@ type AllowedIndexes<
     ? AllowedIndexes<Tail, Keys | Tail['length']>
     : Keys
 
-export type DeepKeys<T, TDepth extends any[] = []> = TDepth['length'] extends 5
+export type DeepKeys<
+  T,
+  TDepth extends Array<any> = [],
+> = TDepth['length'] extends 5
   ? never
   : unknown extends T
     ? string
-    : T extends readonly any[] & IsTuple<T>
+    : T extends ReadonlyArray<any> & IsTuple<T>
       ? AllowedIndexes<T> | DeepKeysPrefix<T, AllowedIndexes<T>, TDepth>
-      : T extends any[]
+      : T extends Array<any>
         ? DeepKeys<T[number], [...TDepth, any]>
         : T extends Date
           ? never
@@ -60,7 +63,7 @@ export type DeepKeys<T, TDepth extends any[] = []> = TDepth['length'] extends 5
 type DeepKeysPrefix<
   T,
   TPrefix,
-  TDepth extends any[],
+  TDepth extends Array<any>,
 > = TPrefix extends keyof T & (number | string)
   ? `${TPrefix}.${DeepKeys<T[TPrefix], [...TDepth, any]> & string}`
   : never
@@ -89,7 +92,7 @@ export function noop() {
 
 export function makeStateUpdater<K extends keyof TableState>(
   key: K,
-  instance: unknown
+  instance: unknown,
 ) {
   return (updater: Updater<TableState[K]>) => {
     ;(instance as any).setState(<TTableState>(old: TTableState) => {
@@ -107,21 +110,21 @@ export function isFunction<T extends AnyFunction>(d: any): d is T {
   return d instanceof Function
 }
 
-export function isNumberArray(d: any): d is number[] {
-  return Array.isArray(d) && d.every(val => typeof val === 'number')
+export function isNumberArray(d: any): d is Array<number> {
+  return Array.isArray(d) && d.every((val) => typeof val === 'number')
 }
 
 export function flattenBy<TNode>(
-  arr: TNode[],
-  getChildren: (item: TNode) => TNode[]
+  arr: Array<TNode>,
+  getChildren: (item: TNode) => Array<TNode>,
 ) {
-  const flat: TNode[] = []
+  const flat: Array<TNode> = []
 
-  const recurse = (subArr: TNode[]) => {
-    subArr.forEach(item => {
+  const recurse = (subArr: Array<TNode>) => {
+    subArr.forEach((item) => {
       flat.push(item)
       const children = getChildren(item)
-      if (children?.length) {
+      if (children.length) {
         recurse(children)
       }
     })
@@ -132,19 +135,19 @@ export function flattenBy<TNode>(
   return flat
 }
 
-export function memo<TDeps extends readonly any[], TDepArgs, TResult>(
+export function memo<TDeps extends ReadonlyArray<any>, TDepArgs, TResult>(
   getDeps: (depArgs?: TDepArgs) => [...TDeps],
   fn: (...args: NoInfer<[...TDeps]>) => TResult,
   opts: {
     key: any
     debug?: () => any
     onChange?: (result: TResult) => void
-  }
+  },
 ): (depArgs?: TDepArgs) => TResult {
-  let deps: any[] = []
+  let deps: Array<any> = []
   let result: TResult | undefined
 
-  return depArgs => {
+  return (depArgs) => {
     let depTime: number
     if (opts.key && opts.debug) depTime = Date.now()
 
@@ -164,10 +167,10 @@ export function memo<TDeps extends readonly any[], TDepArgs, TResult>(
     if (opts.key && opts.debug) resultTime = Date.now()
 
     result = fn(...newDeps)
-    opts?.onChange?.(result)
+    opts.onChange?.(result)
 
     if (opts.key && opts.debug) {
-      if (opts?.debug()) {
+      if (opts.debug()) {
         const depEndTime = Math.round((Date.now() - depTime!) * 100) / 100
         const resultEndTime = Math.round((Date.now() - resultTime!) * 100) / 100
         const resultFpsPercentage = resultEndTime / 16
@@ -187,14 +190,14 @@ export function memo<TDeps extends readonly any[], TDepArgs, TResult>(
             font-weight: bold;
             color: hsl(${Math.max(
               0,
-              Math.min(120 - 120 * resultFpsPercentage, 120)
+              Math.min(120 - 120 * resultFpsPercentage, 120),
             )}deg 100% 31%);`,
-          opts?.key
+          opts.key,
         )
       }
     }
 
-    return result!
+    return result
   }
 }
 
@@ -208,10 +211,10 @@ export function getMemoOptions(
     | 'debugRows'
     | 'debugHeaders',
   key: string,
-  onChange?: (result: any) => void
+  onChange?: (result: any) => void,
 ) {
   return {
-    debug: () => tableOptions?.debugAll ?? tableOptions[debugLevel],
+    debug: () => tableOptions.debugAll ?? tableOptions[debugLevel],
     key: process.env.NODE_ENV === 'development' && key,
     onChange,
   }

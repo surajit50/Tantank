@@ -1,11 +1,11 @@
 import { createRow } from '../core/row'
-import { Table, Row, RowModel, RowData } from '../types'
 import { flattenBy, getMemoOptions, memo } from '../utils'
+import type { Row, RowData, RowModel, Table } from '../types'
 
 export function getGroupedRowModel<TData extends RowData>(): (
-  table: Table<TData>
+  table: Table<TData>,
 ) => () => RowModel<TData> {
-  return table =>
+  return (table) =>
     memo(
       () => [table.getState().grouping, table.getPreGroupedRowModel()],
       (grouping, rowModel) => {
@@ -14,11 +14,11 @@ export function getGroupedRowModel<TData extends RowData>(): (
         }
 
         // Filter the grouping list down to columns that exist
-        const existingGrouping = grouping.filter(columnId =>
-          table.getColumn(columnId)
+        const existingGrouping = grouping.filter((columnId) =>
+          table.getColumn(columnId),
         )
 
-        const groupedFlatRows: Row<TData>[] = []
+        const groupedFlatRows: Array<Row<TData>> = []
         const groupedRowsById: Record<string, Row<TData>> = {}
         // const onlyGroupedFlatRows: Row[] = [];
         // const onlyGroupedRowsById: Record<RowId, Row> = {};
@@ -27,14 +27,14 @@ export function getGroupedRowModel<TData extends RowData>(): (
 
         // Recursively group the data
         const groupUpRecursively = (
-          rows: Row<TData>[],
+          rows: Array<Row<TData>>,
           depth = 0,
-          parentId?: string
+          parentId?: string,
         ) => {
           // Grouping depth has been been met
           // Stop grouping and simply rewrite thd depth and row relationships
           if (depth >= existingGrouping.length) {
-            return rows.map(row => {
+            return rows.map((row) => {
               row.depth = depth
 
               groupedFlatRows.push(row)
@@ -64,7 +64,7 @@ export function getGroupedRowModel<TData extends RowData>(): (
 
               // Flatten the leaf rows of the rows in this group
               const leafRows = depth
-                ? flattenBy(groupedRows, row => row.subRows)
+                ? flattenBy(groupedRows, (row) => row.subRows)
                 : groupedRows
 
               const row = createRow(
@@ -74,7 +74,7 @@ export function getGroupedRowModel<TData extends RowData>(): (
                 index,
                 depth,
                 undefined,
-                parentId
+                parentId,
               )
 
               Object.assign(row, {
@@ -109,7 +109,7 @@ export function getGroupedRowModel<TData extends RowData>(): (
                     row._groupingValuesCache[columnId] = aggregateFn(
                       columnId,
                       leafRows,
-                      groupedRows
+                      groupedRows,
                     )
 
                     return row._groupingValuesCache[columnId]
@@ -117,7 +117,7 @@ export function getGroupedRowModel<TData extends RowData>(): (
                 },
               })
 
-              subRows.forEach(subRow => {
+              subRows.forEach((subRow) => {
                 groupedFlatRows.push(subRow)
                 groupedRowsById[subRow.id] = subRow
                 // if (subRow.getIsGrouped?.()) {
@@ -130,7 +130,7 @@ export function getGroupedRowModel<TData extends RowData>(): (
               })
 
               return row
-            }
+            },
           )
 
           return aggregatedGroupedRows
@@ -138,7 +138,7 @@ export function getGroupedRowModel<TData extends RowData>(): (
 
         const groupedRows = groupUpRecursively(rowModel.rows, 0)
 
-        groupedRows.forEach(subRow => {
+        groupedRows.forEach((subRow) => {
           groupedFlatRows.push(subRow)
           groupedRowsById[subRow.id] = subRow
           // if (subRow.getIsGrouped?.()) {
@@ -161,12 +161,15 @@ export function getGroupedRowModel<TData extends RowData>(): (
           table._autoResetExpanded()
           table._autoResetPageIndex()
         })
-      })
+      }),
     )
 }
 
-function groupBy<TData extends RowData>(rows: Row<TData>[], columnId: string) {
-  const groupMap = new Map<any, Row<TData>[]>()
+function groupBy<TData extends RowData>(
+  rows: Array<Row<TData>>,
+  columnId: string,
+) {
+  const groupMap = new Map<any, Array<Row<TData>>>()
 
   return rows.reduce((map, row) => {
     const resKey = `${row.getGroupingValue(columnId)}`
