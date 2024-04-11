@@ -71,6 +71,7 @@
     "rollup-plugin-visualizer": "^5.12.0",
     "sherif": "^0.8.1",
     "size-limit": "^11.1.2",
+    "svelte": "^5.0.0-next",
     "typescript": "5.4.3",
     "vitest": "^1.4.0"
   }
